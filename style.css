@@ -4,8 +4,11 @@
     box-sizing: border-box;
 }
 
+/* ===============================
+   Theme Variables
+================================ */
+
 :root {
-    /* 浅色模式（默认，当系统偏好浅色时） */
     --bg-color: #ffffff;
     --text-color: #000000;
     --text-secondary: #666666;
@@ -13,9 +16,14 @@
     --link-bg: #f5f5f5;
     --link-hover: #000000;
     --avatar-border: #000000;
+
+    /* ⭐ 光学对齐参数（关键） */
+    --name-optical-shift: -0.35ch;
+    --name-optical-shift-mobile: -0.25ch;
+    --stack-gap: 16px;
+    --optical-gap-correction: 2px; /* 视觉补偿：用于平衡 bio 与链接之间的感知间距 */
 }
 
-/* 系统偏好深色模式时，自动应用深色主题 */
 @media (prefers-color-scheme: dark) {
     :root {
         --bg-color: #000000;
@@ -28,7 +36,6 @@
     }
 }
 
-/* 手动切换：当checkbox选中时，强制深色模式（覆盖系统浅色偏好） */
 body:has(#theme-toggle:checked) {
     --bg-color: #000000;
     --text-color: #ffffff;
@@ -39,7 +46,6 @@ body:has(#theme-toggle:checked) {
     --avatar-border: #ffffff;
 }
 
-/* 手动切换：当checkbox选中且系统偏好深色时，强制浅色模式（覆盖系统深色偏好） */
 @media (prefers-color-scheme: dark) {
     body:has(#theme-toggle:checked) {
         --bg-color: #ffffff;
@@ -52,8 +58,13 @@ body:has(#theme-toggle:checked) {
     }
 }
 
+/* ===============================
+   Base Layout
+================================ */
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Roboto", "Helvetica Neue", Arial, sans-serif;
     background: var(--bg-color);
     color: var(--text-color);
     min-height: 100vh;
@@ -62,9 +73,22 @@ body {
     align-items: center;
     padding: 20px;
     transition: background-color 0.3s ease, color 0.3s ease;
+
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* 主题切换按钮 */
+.container {
+    max-width: 500px;
+    width: 100%;
+    padding: 60px 40px;
+    text-align: center;
+}
+
+/* ===============================
+   Theme Toggle
+================================ */
+
 .theme-toggle {
     display: none;
 }
@@ -75,13 +99,13 @@ body {
     right: 20px;
     width: 40px;
     height: 40px;
+    background: var(--link-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    background: var(--link-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
     transition: all 0.3s ease;
     z-index: 100;
 }
@@ -94,105 +118,86 @@ body {
 .theme-icon {
     font-size: 20px;
     transition: transform 0.3s ease;
-    display: inline-block;
 }
 
 .theme-toggle-label:hover .theme-icon {
     transform: rotate(15deg);
 }
 
-.container {
-    background: var(--bg-color);
-    padding: 60px 40px;
-    max-width: 500px;
-    width: 100%;
-    text-align: center;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
+/* ===============================
+   Info Section (视觉对齐核心)
+================================ */
 
-/* 头像样式 */
-.avatar-container {
-    margin-bottom: 40px;
-}
-
-.avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid var(--avatar-border);
-    transition: opacity 0.3s ease;
-}
-
-.avatar:hover {
-    opacity: 0.8;
-}
-
-/* 姓名和简介样式 */
 .info-section {
-    margin-bottom: 20px;
+    margin-bottom: 0;
+
+    /* ✅ 不使用任何宽度对齐 */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 统一视觉中轴 */
+    gap: 12px;
 }
+
+/* ===== Name ===== */
 
 .name {
-    font-size: 2rem;
-    color: var(--text-color);
-    margin-bottom: 20px;
+    display: inline-block; /* 内容级居中，而不是块级撑满 */
+    font-size: clamp(1.6rem, 2.6vw, 2rem);
     font-weight: 400;
     letter-spacing: -0.02em;
-    transition: color 0.3s ease;
+    line-height: 1.1;
+    margin-bottom: 0; /* 使用父级 gap 控制名字与简介的间距 */
+    text-align: center;
+    margin-bottom:16px;
+
+    /* ⭐ 光学居中补偿 */
+    transform: translateX(var(--name-optical-shift));
 }
+
+/* ===== Bio ===== */
 
 .bio {
     font-size: 1rem;
     color: var(--text-secondary);
-    line-height: 1.6;
-    max-width: 400px;
-    margin: 0 auto;
     font-weight: 300;
-    transition: color 0.3s ease;
+    line-height: 1.6;
+
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
-    gap: 0px;
 }
 
 .bio-word {
     position: relative;
-    display: inline-block;
+    width: 9ch;
     height: 1.6em;
     overflow: hidden;
-    cursor: pointer;
-    vertical-align: top;
     text-align: center;
-    flex: 0 0 auto;
-    width: 9ch;
+    cursor: pointer;
 }
 
 .bio-text {
-    display: block;
-    color: var(--text-secondary);
-    transition: transform 0.4s ease, opacity 0.4s ease;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     white-space: nowrap;
-    line-height: 1.6;
-    text-align: center;
+    transition: transform 0.4s ease, opacity 0.4s ease;
 }
 
 .bio-text-default {
-    position: absolute;
     top: 0;
-    left: 50%;
-    transform: translateX(-50%) translateY(0);
     opacity: 1;
 }
 
 .bio-text-hover {
-    position: absolute;
     top: 0;
-    left: 50%;
     transform: translateX(-50%) translateY(100%);
     opacity: 0;
-    white-space: nowrap;
+}
+
+.bio-word:hover .bio-text-default {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
 }
 
 .bio-word:hover .bio-text-hover {
@@ -200,45 +205,26 @@ body {
     opacity: 1;
 }
 
-/* 确保容器宽度能容纳最长的文字，并居中对齐，与链接图标对齐 */
-/* 确保容器宽度能容纳最长的文字 */
-.bio-word:nth-child(1) {
-    min-width: 9ch; /* 容纳 "Curiosity" (9个字符) 或 "Boundary" (8个字符) */
-}
+/* ===============================
+   Links
+================================ */
 
-.bio-word:nth-child(2) {
-    min-width: 9ch; /* 容纳 "Structure" (9个字符) 或 "Logic" (5个字符) */
-}
-
-.bio-word:nth-child(3) {
-    min-width: 5ch; /* 容纳 "Taste" (5个字符) 或 "Value" (5个字符) */
-}
-
-.bio-word:hover .bio-text-default {
-    transform: translateY(-100%);
-    opacity: 0;
-}
-
-/* 链接区域样式 */
 .links-section {
     display: flex;
     justify-content: center;
-    align-items: center;
-    gap: 0px;
-    flex-wrap: wrap;
+    margin-top: calc(var(--stack-gap) - var(--optical-gap-correction)); /* 视觉等距补偿 */
 }
 
 .social-link {
+    width: 9ch;
+    padding: 12px 0;
+    color: var(--text-color);
+    text-decoration: none;
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    color: var(--text-color);
-    padding: 12px 0;
     transition: color 0.3s ease;
-    width: 9ch;
-    flex: 0 0 auto;
 }
 
 .social-link svg {
@@ -246,13 +232,6 @@ body {
     height: 20px;
     margin-bottom: 8px;
     transition: opacity 0.3s ease;
-}
-
-.social-link span {
-    font-size: 0.75rem;
-    font-weight: 300;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
 }
 
 .social-link:hover {
@@ -263,98 +242,41 @@ body {
     opacity: 0.7;
 }
 
-/* 响应式设计 */
+/* ===============================
+   Responsive
+================================ */
+
 @media (max-width: 768px) {
     .container {
         padding: 50px 30px;
     }
-    
+
     .name {
-        font-size: 1.75rem;
+        transform: translateX(var(--name-optical-shift-mobile));
     }
-    
+
     .bio {
         font-size: 0.95rem;
-    }
-    
-    .avatar {
-        width: 100px;
-        height: 100px;
-    }
-    
-    .bio {
-        gap: 0px;
-    }
-    
-    .links-section {
-        gap: 0px;
-    }
-    
-    .bio-word {
-        width: 9ch;
-    }
-    
-    .social-link {
-        width: 9ch;
-    }
-    
-    .theme-toggle-label {
-        top: 15px;
-        right: 15px;
-        width: 36px;
-        height: 36px;
-    }
-    
-    .theme-icon {
-        font-size: 18px;
     }
 }
 
 @media (max-width: 480px) {
-    body {
-        padding: 15px;
-    }
-    
     .container {
         padding: 40px 20px;
     }
-    
+
     .name {
+        transform: translateX(var(--name-optical-shift-mobile));
         font-size: 1.5rem;
     }
-    
+
     .bio {
         font-size: 0.9rem;
         line-height: 1.5;
     }
-    
-    .avatar {
-        width: 80px;
-        height: 80px;
-    }
-    
-    .bio {
-        gap: 0px;
-    }
-    
-    .links-section {
-        gap: 0px;
-    }
-    
-    .bio-word {
-        width: 9ch;
-    }
-    
-    .social-link {
-        width: 9ch;
-    }
-    
+
     .social-link svg {
         width: 18px;
         height: 18px;
-    }
-    
-    .social-link span {
-        font-size: 0.7rem;
     }
 }
