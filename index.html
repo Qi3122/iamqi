@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZhongQi Zhang</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="apple-touch-icon" sizes="180x180" href="/fav/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/fav/favicon-32x32.png">
@@ -12,10 +11,6 @@
     <link rel="manifest" href="/fav/site.webmanifest">
 </head>
 <body>
-    <input type="checkbox" id="theme-toggle" class="theme-toggle">
-    <label for="theme-toggle" class="theme-toggle-label">
-        <i class="fas fa-adjust theme-icon"></i>
-    </label>
     <div class="container">
         <!-- 姓名和简介 -->
         <div class="info-section">
@@ -58,47 +53,117 @@
     </div>
 
     <script>
-        // 移动端触摸交互支持
+        // 移动端触摸交互支持 - iOS Safari & Chrome 优化
         document.addEventListener('DOMContentLoaded', function() {
             const bioWords = document.querySelectorAll('.bio-word');
 
-            bioWords.forEach(word => {
-                // 为每个词汇元素添加点击事件
-                word.addEventListener('click', function(e) {
-                    // 检测是否为触摸设备或小屏幕
-                    const isTouchDevice = ('ontouchstart' in window) ||
-                                         (navigator.maxTouchPoints > 0);
-                    const isSmallScreen = window.innerWidth <= 768;
+            // 检测设备和浏览器信息
+            const isTouchDevice = ('ontouchstart' in window) ||
+                                 (navigator.maxTouchPoints > 0) ||
+                                 (navigator.msMaxTouchPoints > 0);
+            const userAgent = navigator.userAgent;
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent);
 
-                    // 仅在触摸设备或小屏幕上启用点击切换
-                    if (isTouchDevice || isSmallScreen) {
+            console.log('=== Debug Info ===');
+            console.log('Touch device:', isTouchDevice);
+            console.log('Is iOS:', isIOS);
+            console.log('Window width:', window.innerWidth);
+            console.log('User Agent:', userAgent);
+            console.log('Bio words found:', bioWords.length);
+
+            bioWords.forEach((word, index) => {
+                let touchStartTime = 0;
+                let touchMoved = false;
+                let touchStartY = 0;
+
+                // 触摸开始
+                word.addEventListener('touchstart', function(e) {
+                    console.log('touchstart on word', index);
+                    touchStartTime = Date.now();
+                    touchMoved = false;
+                    touchStartY = e.touches[0].clientY;
+                    this.style.opacity = '0.7';
+                }, {passive: true});
+
+                // 检测是否移动（滑动）
+                word.addEventListener('touchmove', function(e) {
+                    const moveY = Math.abs(e.touches[0].clientY - touchStartY);
+                    if (moveY > 10) { // 移动超过10px才算滑动
+                        touchMoved = true;
+                        console.log('touchmove detected on word', index);
+                    }
+                }, {passive: true});
+
+                // 触摸结束 - 主要交互逻辑
+                word.addEventListener('touchend', function(e) {
+                    const touchDuration = Date.now() - touchStartTime;
+                    console.log('touchend on word', index, '- duration:', touchDuration, 'moved:', touchMoved);
+
+                    // 恢复透明度
+                    this.style.opacity = '1';
+
+                    // 只有点击（非滑动）且时长短才触发切换
+                    if (!touchMoved && touchDuration < 500) {
                         e.preventDefault();
+                        e.stopPropagation();
 
-                        // 切换当前元素的 active 状态
+                        // 切换状态
+                        const wasActive = this.classList.contains('active');
                         this.classList.toggle('active');
-                    }
-                });
+                        const nowActive = this.classList.contains('active');
 
-                // 添加触摸友好性:阻止长按菜单
-                word.addEventListener('contextmenu', function(e) {
-                    if (this.classList.contains('active')) {
-                        e.preventDefault();
+                        console.log('Word', index, 'toggled:', wasActive, '->', nowActive);
+                        console.log('Classes:', this.className);
+                    } else {
+                        console.log('Touch ignored - moved:', touchMoved, 'duration:', touchDuration);
                     }
-                });
+                }, {passive: false}); // passive: false 允许 preventDefault
+
+                // 取消默认长按菜单
+                word.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                }, {passive: false});
+
+                // 添加 click 事件作为后备（某些浏览器可能需要）
+                word.addEventListener('click', function(e) {
+                    console.log('click event on word', index);
+                    if (isTouchDevice || window.innerWidth <= 768) {
+                        e.preventDefault();
+                        this.classList.toggle('active');
+                        console.log('Toggled via click. Active:', this.classList.contains('active'));
+                    }
+                }, {passive: false});
             });
 
-            // 响应窗口大小变化,清除所有 active 状态
+            // 点击其他区域取消所有 active 状态
+            document.addEventListener('touchend', function(e) {
+                if (!e.target.closest('.bio-word')) {
+                    const activeWords = document.querySelectorAll('.bio-word.active');
+                    if (activeWords.length > 0) {
+                        console.log('Clearing', activeWords.length, 'active words');
+                        activeWords.forEach(word => {
+                            word.classList.remove('active');
+                        });
+                    }
+                }
+            }, {passive: true});
+
+            // 窗口大小变化时清除状态
             let resizeTimer;
             window.addEventListener('resize', function() {
                 clearTimeout(resizeTimer);
                 resizeTimer = setTimeout(function() {
-                    document.querySelectorAll('.bio-word.active').forEach(word => {
-                        word.classList.remove('active');
-                    });
+                    console.log('Window resized to:', window.innerWidth);
+                    if (window.innerWidth > 768 && !isTouchDevice) {
+                        document.querySelectorAll('.bio-word.active').forEach(word => {
+                            word.classList.remove('active');
+                        });
+                    }
                 }, 250);
             });
+
+            console.log('=== Setup Complete ===');
         });
     </script>
 </body>
 </html>
-
