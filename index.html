@@ -56,6 +56,49 @@
             </a>
         </div>
     </div>
+
+    <script>
+        // 移动端触摸交互支持
+        document.addEventListener('DOMContentLoaded', function() {
+            const bioWords = document.querySelectorAll('.bio-word');
+
+            bioWords.forEach(word => {
+                // 为每个词汇元素添加点击事件
+                word.addEventListener('click', function(e) {
+                    // 检测是否为触摸设备或小屏幕
+                    const isTouchDevice = ('ontouchstart' in window) ||
+                                         (navigator.maxTouchPoints > 0);
+                    const isSmallScreen = window.innerWidth <= 768;
+
+                    // 仅在触摸设备或小屏幕上启用点击切换
+                    if (isTouchDevice || isSmallScreen) {
+                        e.preventDefault();
+
+                        // 切换当前元素的 active 状态
+                        this.classList.toggle('active');
+                    }
+                });
+
+                // 添加触摸友好性:阻止长按菜单
+                word.addEventListener('contextmenu', function(e) {
+                    if (this.classList.contains('active')) {
+                        e.preventDefault();
+                    }
+                });
+            });
+
+            // 响应窗口大小变化,清除所有 active 状态
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    document.querySelectorAll('.bio-word.active').forEach(word => {
+                        word.classList.remove('active');
+                    });
+                }, 250);
+            });
+        });
+    </script>
 </body>
 </html>
 

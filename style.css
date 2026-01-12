@@ -196,12 +196,15 @@ body {
     opacity: 0;
 }
 
-.bio-word:hover .bio-text-default {
+/* 支持桌面端 hover 和移动端点击切换 */
+.bio-word:hover .bio-text-default,
+.bio-word.active .bio-text-default {
     transform: translateX(-50%) translateY(-100%);
     opacity: 0;
 }
 
-.bio-word:hover .bio-text-hover {
+.bio-word:hover .bio-text-hover,
+.bio-word.active .bio-text-hover {
     transform: translateX(-50%) translateY(0);
     opacity: 1;
 }
